@@ -1,26 +1,26 @@
 # LiquidNode - The Liquid template engine on Node.js
 
-## Summary of this Fork
+## Why this fork?
 
-LiquidNode is a port of the Liquid template engine (written in Ruby) to *Node.js*. It uses Futures to support non-blocking, asynchronous variables/filters/blocks. Most code has been translated from Ruby to CoffeeScript, with a few adjustments to make it feel more *Coffee-/JavaScripty*.
+LiquidNode is a port of the Liquid template engine (originally written in Ruby) to *Node.js*. It uses Futures to support non-blocking, asynchronous variables/filters/blocks. Most code has been translated from Ruby to CoffeeScript, with a few adjustments (casing) to make it feel more *Coffee-/JavaScripty*.
 
-## How `LiquidNode` differs from [Liquid](https://github.com/Shopify/liquid/)
+## How [LiquidNode](https://github.com/sirlantis/liquid-node) differs from [Liquid](https://github.com/Shopify/liquid/)
 
-The power of Node.js lies in its non-blocking nature. This presents a problem when using expressions like `{{ store.items | count }}` which hide a blocking SQL-query.
+The power of Node.js lies in its non-blocking nature. This presents a problem when using expressions like `{{ store.items | count }}` which may hide a blocking SQL-query.
 
-LiquidNode tries to solve that problem by using [Futures and Promises](http://en.wikipedia.org/wiki/Futures_and_promises). The programmer must return Future-objects from asynchronous functions - designs don't have to care about it.
+LiquidNode tries to solve that problem by using [Futures and Promises](http://en.wikipedia.org/wiki/Futures_and_promises). The programmer must return Future-objects from asynchronous functions - designers don't have to care about it.
 
 ## Implementation of Futures
 
-I decided to use the [`futures` package](https://github.com/coolaj86/futures) as an implementation of Futures (for now).
+I decided to use the [**futures** package](https://github.com/coolaj86/futures) as an implementation of Futures (for now).
 
 ```coffeescript
-fs = require "fs"
-futures = require "futures"
+fs        = require "fs"
+futures   = require "futures"
 
 class Server
   name: ->
-    "Falkor7"
+    "Falkor"
 
   accounts: ->
     future = futures.future()
@@ -28,6 +28,10 @@ class Server
       future.deliver err, data
     future
 ```
+
+## State of development
+
+I'm developing this project alongside a different project. I translated a few basic tests from the original Liquid codebase - but there are hundreds of them. So if you find a bug-fix or have some time to translate further tests I'll be happy to pull them in.
 
 # Liquid template engine
 
