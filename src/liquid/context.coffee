@@ -65,15 +65,23 @@ module.exports = class Liquid.Context
   #
   #   context['var]  #=> nil
   stack: (newScope = {}, f) ->
+    popLater = false
+
     try
       if arguments.length < 2
         f = newScope
         newScope = {}
 
       @push(newScope)
-      f()
+      result = f()
+
+      if f.isFuture?
+        f.when => @pop()
+        popLater = true
+
+      result
     finally
-      @pop()
+      @pop() unless popLater
 
   clearInstanceAssigns: ->
     @scopes[0] = {}

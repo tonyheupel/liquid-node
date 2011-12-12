@@ -5,7 +5,12 @@ Liquid = require("../src/liquid")
 assertTemplateResult = (expected, template, assigns, message) ->
   assigns or= {}
   actual = Liquid.Template.parse(template).renderOrRaise(assigns)
-  assert.equal actual, expected, message
+
+  if actual.isFuture?
+    actual.when (rendered) ->
+      assert.equal rendered, expected, message
+  else
+    assert.equal actual, expected, message
 
 assert_template_result = assertTemplateResult
 
@@ -77,9 +82,8 @@ vows
 
     VariableResolutionTest:
       test_simple_variable: ->
-        template = Liquid.Template.parse("""{{test}}""")
-        assert.equal 'worked', template.render(test: 'worked')
-        assert.equal 'worked wonderfully', template.render(test: 'worked wonderfully')
+        assertTemplateResult('worked', '{{test}}', test:'worked')
+        assertTemplateResult('worked wonderfully', '{{test}}', test:'worked wonderfully')
 
     FiltersTest:
       test_local_filter: ->

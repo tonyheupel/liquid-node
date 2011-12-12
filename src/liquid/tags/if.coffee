@@ -35,7 +35,11 @@ class Liquid.If extends Liquid.Block
   render: (context) ->
     context.stack =>
       block = _(@blocks).detect (block) => block.evaluate(context)
-      if block then @renderAll(block.attachment, context) else ""
+
+      if block
+        @renderAll(block.attachment, context)
+      else
+        ""
 
   # private
 
