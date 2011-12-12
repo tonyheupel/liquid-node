@@ -9,12 +9,12 @@ global.renderTest = (f) ->
     (expected, template, assigns, message) ->
       actual = Liquid.Template.parse(template).renderOrRaise(assigns)
 
-      if actual.isFuture?
+      if actual?.isFuture?
         cnt += 1
 
         actual.when (rendered) ->
-          assert.eql rendered, expected, message
           cnt -= 1
+          assert.eql rendered, expected, message
       else
         assert.eql actual, expected, message
 
