@@ -1,0 +1,17 @@
+{
+  "author": "Marcel Jackwerth <marcel@northdocks.com>",
+  "name": "liquid-node",
+  "description": "Node.js port of Tobias Lütke's Liquid template engine.",
+  "version": "0.0.0",
+  "homepage": "https://github.com/sirlantis/liquid-node",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/sirlantis/liquid-node.git"
+  },
+  "main": "src/liquid.coffee",
+  "engines": {
+    "node": "~0.6.5"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
