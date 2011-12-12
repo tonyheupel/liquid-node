@@ -1,5 +1,6 @@
-Liquid = require("../../liquid")
+Liquid = require "../../liquid"
 _ = require("underscore")._
+futures = require "futures"
 
 # "For" iterates over an array or collection.
 # Several useful variables are available to you within the loop.
@@ -83,20 +84,18 @@ class Liquid.For extends Liquid.Block
     return @renderElse(context) unless collection.forEach
 
     from = if @attributes.offset == "continue"
-      Number(context.registers["for"][@name])
+      Number(context.registers["for"][@name]) or 0
     else
-      Number(context[@attributes.offset])
+      Number(context[@attributes.offset]) or 0
 
     limit = context[@attributes.limit]
     to    = if limit then Number(limit) + from else null
 
-    segment = sliceCollectionUsingEach(collection, from, to)
+    segment = @sliceCollectionUsingEach(collection, from, to)
 
-    return renderElse(context) if segment.length == 0
+    return @renderElse(context) if segment.length == 0
 
     segment = _.reverse segment if @reversed
-
-    result = ""
 
     length = segment.length
 
@@ -104,7 +103,10 @@ class Liquid.For extends Liquid.Block
     context.registers["for"][@name] = from + segment.length
 
     context.stack =>
-      segment.forEach (item, index) =>
+      result = futures.future()
+      chunks = []
+
+      futures.forEachAsync(segment, (next, item, index) =>
         context.set @variableName, item
         context.set "forloop",
           name    : @name
@@ -116,9 +118,19 @@ class Liquid.For extends Liquid.Block
           first   : index == 0
           last    : index == length - 1
 
-        result.push @renderAll(@forBlock, context)
+        chunk = @renderAll(@forBlock, context)
 
-    result
+        if chunk.isFuture?
+          chunk.when (chunk) ->
+            chunks[index] = chunk
+            next()
+        else
+          chunks[index] = chunk
+          next()
+      ).then ->
+        result.deliver(chunks.join(""))
+
+      result
 
   sliceCollectionUsingEach: (collection, from, to) ->
     segments = []
