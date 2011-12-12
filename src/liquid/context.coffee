@@ -4,13 +4,13 @@ _ = require("underscore")._
 module.exports = class Liquid.Context
 
   constructor: (environments = {}, outerScope = {}, registers = {}, rethrowErrors = false) ->
-    @environments = _(environments).flatten()
+    @environments = _.flatten [environments]
     @scopes = [outerScope or {}]
     @registers = registers
     @errors = []
     @rethrowErrors = rethrowErrors
-    @squashInstanceAssignsWithEnvironments
     @strainer = Liquid.Strainer.create(@)
+    @squashInstanceAssignsWithEnvironments()
 
 
   # Adds filters to this context.
@@ -133,19 +133,13 @@ module.exports = class Liquid.Context
     scope = _(@scopes).detect (s) ->
       s.hasOwnProperty?(key)
 
-    unless scope?
-      _(@environments).detect (e) =>
-        if variable = @lookupAndEvaluate(e, key)
-          scope = e
-          true
-        else
-          false
-
+    scope or= _(@environments).detect (e) =>
+      variable = @lookupAndEvaluate(e, key)
     scope or= @environments[@environments.length-1] or @scopes[@scopes.length-1]
     variable or= @lookupAndEvaluate(scope, key)
 
     variable = liquify(variable)
-    variable?.context = @
+    variable.context = @ if variable instanceof Liquid.Drop
 
     variable
 
@@ -158,8 +152,10 @@ module.exports = class Liquid.Context
     if match = squareBracketed.exec(firstPart)
       firstPart = match[1]
 
-    if object = @findVariable(firstPart)
-      _(parts).forEach (part) =>
+    object = @findVariable(firstPart)
+
+    if object
+      _(parts).detect (part) =>
         if partResolved = squareBracketed.exec(part)
           part = @resolve(partResolved[1])
 
@@ -175,17 +171,21 @@ module.exports = class Liquid.Context
           # no key with the same name was found we interpret following calls
           # as commands and call them on the current object
         else if !partResolved and object.length and ["size", "first", "last"].indexOf(part) >= 0
-          switch part
+          object = switch part
             when "size"
               object.length
             when "first"
               object[0]
             when "last"
               object[object.length-1]
+            else
+              object
         else
-          null
+          object = null
+          true # break loop
 
-        object?.context = @
+        object.context = @ if object instanceof Liquid.Drop
+        false
 
     object
 
@@ -207,6 +207,7 @@ module.exports = class Liquid.Context
       _(@environments).detect (env) =>
         if _(env).keys().indexOf(key) >= 0
           lastScope[key] = @lookupAndEvaluate(env, key)
+          true
 
   liquify = (object) ->
     return object unless object?

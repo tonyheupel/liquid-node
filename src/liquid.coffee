@@ -47,3 +47,15 @@ Liquid.Condition        = require("./liquid/condition")
 
 # TODO
 # HtmlTags, FileSystem
+
+# Load Tags
+
+tagDir = "#{__dirname}/liquid/tags"
+require("fs").readdir tagDir, (err, files) ->
+  unless err
+    files.forEach (file) ->
+      if /\.(coffee|js|node)$/.test(file)
+        fullFile = tagDir + "/" + file
+        require(fullFile)
+  else
+    console.error "Failed to import built-in tags."

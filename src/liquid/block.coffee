@@ -1,8 +1,6 @@
 Liquid = require("../liquid")
 _ = require("underscore")._
 
-SyntaxError = Error
-
 module.exports = class Liquid.Block extends Liquid.Tag
   @IsTag             = ///^#{Liquid.TagStart.source}///
   @IsVariable        = ///^#{Liquid.VariableStart.source}///
@@ -16,8 +14,8 @@ module.exports = class Liquid.Block extends Liquid.Tag
     while tokens.length > 0
       token = tokens.shift()
 
-      if Block.IsTag.test(token)
-        if match = Block.FullToken.exec(token)
+      if Liquid.Block.IsTag.test(token)
+        if match = Liquid.Block.FullToken.exec(token)
           # if we found the proper block delimitor just end parsing
           # here and let the outer block proceed
 
@@ -34,7 +32,7 @@ module.exports = class Liquid.Block extends Liquid.Tag
             # handling or error reporting
             @unknownTag(match[1], match[2], tokens)
         else
-          throw new SyntaxError("Tag '#{token}' was not properly terminated with regexp: #{TagEnd.inspect}")
+          throw new Liquid.SyntaxError("Tag '#{token}' was not properly terminated with regexp: #{Liquid.TagEnd.inspect}")
       else if Block.IsVariable.test(token)
         @nodelist.push @createVariable(token)
       else if token == ''
@@ -52,14 +50,14 @@ module.exports = class Liquid.Block extends Liquid.Tag
   unknownTag: (tag, params, tokens) ->
     switch tag
       when 'else'
-        throw new SyntaxError("#{blockName()} tag does not expect else tag")
+        throw new SyntaxError("#{@blockName()} tag does not expect else tag")
       when 'end'
-        throw new SyntaxError("'end' is not a valid delimiter for #{blockName()} tags. use #{blockDelimiter()}")
+        throw new SyntaxError("'end' is not a valid delimiter for #{@blockName()} tags. use #{@blockDelimiter()}")
       else
         throw new SyntaxError("Unknown tag '#{tag}'")
 
   blockDelimiter: ->
-    "end#{blockName()}"
+    "end#{@blockName()}"
 
   blockName: ->
     @tagName

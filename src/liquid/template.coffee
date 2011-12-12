@@ -21,10 +21,10 @@ module.exports = class Liquid.Template
   # creates a new <tt>Template</tt> from an array of tokens.
   # Use <tt>Template.parse</tt> instead
   constructor: ->
-    registers = {}
-    assigns = {}
-    instanceAssigns = {}
-    errors = []
+    @registers = {}
+    @assigns = {}
+    @instanceAssigns = {}
+    @errors = []
 
 
   # Parse source code.

@@ -43,13 +43,16 @@ module.exports = class Liquid.Condition
   and: (@childCondition) ->
     @childRelation = "and"
 
-  attach: (@attachment) ->
+  # Returns parameter
+  attach: (attachment) ->
+    @attachment = attachment
+    attachment
 
   else: ->
     false
 
   inspect: ->
-    "<Condition #{[@left, @operator, @right].join(' ')}>"
+    "<Condition [#{[@left, @operator, @right].join(' ')}], attachment: #{@attachment}>"
 
   # private API
 
@@ -61,10 +64,10 @@ module.exports = class Liquid.Condition
     # If the operator is empty this means that the decision statement is just
     # a single variable. We can just poll this variable from the context and
     # return this as the result.
-    context[left] unless op?
+    return context.get(left) unless op?
 
-    left = context[left]
-    right = context[right]
+    left = context.get(left)
+    right = context.get(right)
 
     operation = Liquid.Condition.operators[op]
     throw new Error("Unknown operator #{op}") unless operation?
