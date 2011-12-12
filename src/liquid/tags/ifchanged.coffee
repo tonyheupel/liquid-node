@@ -8,12 +8,12 @@ class Liquid.Ifchanged extends Liquid.Block
 
       if output?.isFuture?
         result = futures.future()
-        output.when (output) =>
+        output.when (err, output) =>
           if output != context.registers["ifchanged"]
             context.registers["ifchanged"] = output
-            result.deliver(output)
+            result.deliver null, output
           else
-            result.deliver ""
+            result.deliver null, ""
         result
       else if output != context.registers["ifchanged"]
         context.registers["ifchanged"] = output

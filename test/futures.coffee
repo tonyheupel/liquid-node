@@ -6,7 +6,7 @@ module.exports =
     asyncResult = (result) ->
       ->
         f = futures.future()
-        setTimeout((-> f.deliver(result)), 5)
+        setTimeout((-> f.deliver(null, result)), 5)
         f
 
     render 'worked', '{{ test }}',

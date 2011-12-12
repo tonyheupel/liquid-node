@@ -35,9 +35,13 @@ module.exports = class Variable
 
     unfuture = (future, callback) ->
       if future?.isFuture?
-        future.when (r) => unfuture(r, callback)
+        future.when (err, r) =>
+          if err
+            callback(err)
+          else
+            unfuture(r, callback)
       else
-        callback(future)
+        callback(null, future)
 
     mapper = (output, filter) =>
       filterargs = _(filter[1]).map (a) =>
@@ -60,7 +64,7 @@ module.exports = class Variable
         dependencies.forEach (k, i) =>
           return unless k?.isFuture?
 
-          k.when (r) =>
+          k.when (err, r) =>
             if i == 0
               output = r
             else
@@ -68,8 +72,8 @@ module.exports = class Variable
 
             counter -= 1
             if counter == 0
-              unfuture execute(), (obj) =>
-                result.deliver(obj)
+              unfuture execute(), (err, obj) =>
+                result.deliver err, obj
 
         result
       else

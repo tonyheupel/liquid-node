@@ -12,7 +12,7 @@ global.renderTest = (f) ->
       if actual?.isFuture?
         cnt += 1
 
-        actual.when (rendered) ->
+        actual.when (err, rendered) ->
           cnt -= 1
           assert.eql rendered, expected, message
       else

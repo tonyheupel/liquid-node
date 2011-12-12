@@ -85,7 +85,7 @@ module.exports = class Block extends require("./tag")
           rendered = token.render(context)
 
           if futures.future.isFuture(rendered)
-            rendered.when (rendered) ->
+            rendered.when (err, rendered) ->
               result.push rendered
               next()
           else
@@ -97,6 +97,6 @@ module.exports = class Block extends require("./tag")
       catch e
         context.handleError(e)
     ).then ->
-      futureResult.deliver result.join("")
+      futureResult.deliver null, result.join("")
 
     futureResult
