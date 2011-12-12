@@ -2,7 +2,7 @@ Liquid = require("../liquid")
 _ = require("underscore")._
 futures = require "futures"
 
-module.exports = class Liquid.Block extends Liquid.Tag
+module.exports = class Block extends require("./tag")
   @IsTag             = ///^#{Liquid.TagStart.source}///
   @IsVariable        = ///^#{Liquid.VariableStart.source}///
   @FullToken         = ///^#{Liquid.TagStart.source}\s*(\w+)\s*(.*)?#{Liquid.TagEnd.source}$///

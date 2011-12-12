@@ -44,6 +44,11 @@ Liquid.Variable         = require("./liquid/variable")
 Liquid.Template         = require("./liquid/template")
 Liquid.StandardFilters  = require("./liquid/standard_filters")
 Liquid.Condition        = require("./liquid/condition")
+class Liquid.ElseCondition extends Liquid.Condition
+  else: -> true
+  evaluate: -> true
+
+Liquid.Template.registerFilter(Liquid.StandardFilters)
 
 # TODO
 # HtmlTags, FileSystem

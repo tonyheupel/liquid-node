@@ -1,17 +1,15 @@
 Liquid = require("../liquid")
 _ = require("underscore")._
 
-class BlankFileSystem
-  # todo
-
 module.exports = class Liquid.Template
   @tags = {}
 
   @registerTag: (name, klass) ->
     @tags[name.toString()] = klass
 
-  @registerFilter: (obj) ->
+  @registerFilter = (obj) ->
     Liquid.Strainer.globalFilter(obj)
+    123123123123
 
   @parse: (source) ->
     template = new Liquid.Template()

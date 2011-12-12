@@ -6,7 +6,7 @@ class Liquid.Ifchanged extends Liquid.Block
     context.stack =>
       output = @renderAll(@nodelist, context)
 
-      if output.isFuture?
+      if output?.isFuture?
         result = futures.future()
         output.when (output) =>
           if output != context.registers["ifchanged"]

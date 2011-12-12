@@ -1,7 +1,6 @@
 Liquid = require("../liquid")
 _ = require("underscore")._
-
-FilterNotFound = Error
+futures = require "futures"
 
 # Holds variables. Variables are only loaded "just in time"
 # and are not evaluated as part of the render stage
@@ -13,7 +12,7 @@ FilterNotFound = Error
 #
 #   {{ user | link }}
 #
-module.exports = class Liquid.Variable
+module.exports = class Variable
   @FilterParser = ///(?:#{Liquid.FilterSeparator.source}|(?:\s*(?!(?:#{Liquid.FilterSeparator.source}))(?:#{Liquid.QuotedFragment.source}|\S+)\s*)+)///
 
   constructor: (@markup) ->
@@ -34,14 +33,46 @@ module.exports = class Liquid.Variable
   render: (context) ->
     return '' unless @name?
 
+    unfuture = (future, callback) ->
+      if future?.isFuture?
+        future.when (r) => unfuture(r, callback)
+      else
+        callback(future)
+
     mapper = (output, filter) =>
       filterargs = _(filter[1]).map (a) =>
-        context[a]
+        context.get(a)
 
-      try
-        output = context.invoke(filter[0], output, filterargs...)
-      catch e
-        throw e unless e instanceof Liquid.FilterNotFound
-        throw new Liquid.FilterNotFound("Error - filter '#{filter[0]}' in '#{@markup.strip}' could not be found.")
+      dependencies = [output, filterargs...]
+      waitingFor = _(dependencies).select (o) -> o?.isFuture?
+
+      execute = =>
+        try
+          context.invoke(filter[0], output, filterargs...)
+        catch e
+          throw e unless e instanceof Liquid.FilterNotFound
+          throw new Liquid.FilterNotFound("Error - filter '#{filter[0]}' in '#{@markup.strip}' could not be found.")
+
+      if waitingFor.length > 0
+        counter = waitingFor.length
+        result = futures.future()
+
+        dependencies.forEach (k, i) =>
+          return unless k?.isFuture?
+
+          k.when (r) =>
+            if i == 0
+              output = r
+            else
+              filterargs[i-1] = r
+
+            counter -= 1
+            if counter == 0
+              unfuture execute(), (obj) =>
+                result.deliver(obj)
+
+        result
+      else
+        execute()
 
     _(@filters).inject mapper, context.get(@name)

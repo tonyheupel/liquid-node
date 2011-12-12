@@ -1,5 +1,3 @@
-Liquid = require "../liquid"
-
 # Container for liquid nodes which conveniently wraps decision making logic
 #
 # Example:
@@ -7,7 +5,7 @@ Liquid = require "../liquid"
 #   c = Condition.new('1', '==', '1')
 #   c.evaluate #=> true
 #
-module.exports = class Liquid.Condition
+module.exports = class Condition
   @operators =
     '==': (cond, left, right) ->  cond.equalVariables(left, right)
     '!=': (cond, left, right) -> !cond.equalVariables(left, right)
@@ -26,7 +24,7 @@ module.exports = class Liquid.Condition
     @childCondition = null
 
   evaluate: (context) ->
-    context or= new Liquid.Context
+    context or= new require("liquid/context")
     result = @interpretCondition(@left, @right, @operator, context)
 
     switch @childRelation
@@ -76,10 +74,3 @@ module.exports = class Liquid.Condition
       operation(@, left, right)
     else
       null
-
-class Liquid.ElseCondition extends Liquid.Condition
-  else: ->
-    true
-
-  evaluate: ->
-    true

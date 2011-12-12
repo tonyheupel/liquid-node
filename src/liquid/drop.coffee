@@ -1,4 +1,3 @@
-Liquid = require("../liquid")
 _ = require("underscore")._
 
 # A drop in liquid is a class which allows you to to export DOM
@@ -25,10 +24,10 @@ _ = require("underscore")._
 #
 # Your drop can either implement the methods sans any parameters or implement the before_method(name) method which is a
 # catch all
-module.exports = class Liquid.Drop
+module.exports = class Drop
 
   @extend: (impl) ->
-    klass = class Droplet extends Liquid.Drop
+    klass = class Droplet extends Drop
 
   hasKey: (key) ->
     true

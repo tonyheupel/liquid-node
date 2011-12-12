@@ -1,7 +1,7 @@
 Liquid = require "../liquid"
 _ = require("underscore")._
 
-module.exports = class Liquid.Context
+module.exports = class Context
 
   constructor: (environments = {}, outerScope = {}, registers = {}, rethrowErrors = false) ->
     @environments = _.flatten [environments]
@@ -75,7 +75,7 @@ module.exports = class Liquid.Context
       @push(newScope)
       result = f()
 
-      if f.isFuture?
+      if f?.isFuture?
         f.when => @pop()
         popLater = true
 

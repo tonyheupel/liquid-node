@@ -1,10 +1,9 @@
-Liquid = require "liquid"
 _ = require("underscore")._
 
 toNumber = (input) ->
   Number(input)
 
-module.exports = class Liquid.StandardFilters
+module.exports =
 
   size: (input) ->
     input.length

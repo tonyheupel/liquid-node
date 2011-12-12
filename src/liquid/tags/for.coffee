@@ -120,7 +120,7 @@ class Liquid.For extends Liquid.Block
 
         chunk = @renderAll(@forBlock, context)
 
-        if chunk.isFuture?
+        if chunk?.isFuture?
           chunk.when (chunk) ->
             chunks[index] = chunk
             next()

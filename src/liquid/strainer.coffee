@@ -1,16 +1,11 @@
-Liquid = require("../liquid")
 _ = require("underscore")._
 
-module.exports = class Liquid.Strainer
-
-  filters = {}
+module.exports = class Strainer
 
   constructor: (@context) ->
 
   @globalFilter: (filter) ->
-    filters[filter.name]
+    _.extend Strainer::, filter
 
   @create: (context) ->
-    strainer = new Liquid.Strainer(context)
-    _(filters).forEach (filter) => _.extend(strainer, filter)
-    strainer
+    new Strainer(context)

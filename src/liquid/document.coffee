@@ -1,7 +1,4 @@
-Liquid = require("../liquid")
-_ = require("underscore")._
-
-module.exports = class Liquid.Document extends Liquid.Block
+module.exports = class Liquid extends require("./block")
   # we don't need markup to open this block
   constructor: (tokens) ->
     @parse(tokens)

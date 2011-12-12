@@ -1,5 +1,3 @@
-Liquid = require "liquid"
-
 module.exports =
   scan: (string, regexp, globalMatch = false) ->
     result = []
