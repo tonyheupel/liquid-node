@@ -16,7 +16,7 @@ Liquid = require "../../liquid"
 #    Hello: 2
 #
 
-class Liquid.Increment extends Liquid.Tag
+class Liquid.Increment extends require("../tag")
   constructor: (tagName, markup, tokens) ->
     @variable = markup.trim()
     super

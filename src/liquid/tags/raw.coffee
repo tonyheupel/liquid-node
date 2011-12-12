@@ -1,6 +1,6 @@
 Liquid = require "../../liquid"
 
-class Liquid.Raw extends Liquid.Block
+class Liquid.Raw extends require("../block")
   parse: (tokens) ->
     @nodelist or= []
     @nodelist.pop() while nodelist.length() > 0

@@ -1,6 +1,6 @@
 Liquid = require "../../liquid"
 
-class Liquid.Comment extends Liquid.Block
+class Liquid.Comment extends require("../block")
   render: ->
     ""
 

@@ -1,7 +1,8 @@
 Liquid = require "../../liquid"
 _ = (require "underscore")._
+futures = require "futures"
 
-class Liquid.If extends Liquid.Block
+class Liquid.If extends require("../block")
   SyntaxHelp = "Syntax Error in tag 'if' - Valid syntax: if [expression]"
 
   Syntax = ///
@@ -34,12 +35,26 @@ class Liquid.If extends Liquid.Block
 
   render: (context) ->
     context.stack =>
-      block = _(@blocks).detect (block) => block.evaluate(context)
+      result = futures.future()
 
-      if block
-        @renderAll(block.attachment, context)
-      else
-        ""
+      blockToRender = null
+
+      futures.forEachAsync(@blocks, (next, block) ->
+        if blockToRender
+          next()
+        else
+          Liquid.Helpers.unfuture block.evaluate(context), (err, ok) ->
+            blockToRender = block if ok
+            next()
+      ).then =>
+        if blockToRender
+          rendered = @renderAll(blockToRender.attachment, context)
+          Liquid.Helpers.unfuture rendered, (args...) ->
+            result.deliver(args...)
+        else
+          result.deliver null, ""
+
+      result
 
   # private
 

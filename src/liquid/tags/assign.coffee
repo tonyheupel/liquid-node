@@ -1,6 +1,6 @@
 Liquid = require "../../liquid"
 
-class Liquid.Assign extends Liquid.Tag
+class Liquid.Assign extends require("../tag")
   SyntaxHelp = "Syntax Error in 'assign' - Valid syntax: assign [var] = [source]"
   Syntax = ///
       ((?:#{Liquid.VariableSignature.source})+)

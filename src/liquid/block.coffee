@@ -77,6 +77,7 @@ module.exports = class Block extends require("./tag")
   renderAll: (list, context) ->
     result = []
 
+    delivered = false
     futureResult = futures.future()
 
     futures.forEachAsync(list, (next, token) ->
@@ -97,6 +98,8 @@ module.exports = class Block extends require("./tag")
       catch e
         context.handleError(e)
     ).then ->
-      futureResult.deliver null, result.join("")
+      delivered = true
+      result = result.join("")
+      futureResult.deliver null, result
 
-    futureResult
+    if delivered then result else futureResult

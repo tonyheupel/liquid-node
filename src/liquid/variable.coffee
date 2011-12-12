@@ -33,16 +33,6 @@ module.exports = class Variable
   render: (context) ->
     return '' unless @name?
 
-    unfuture = (future, callback) ->
-      if future?.isFuture?
-        future.when (err, r) =>
-          if err
-            callback(err)
-          else
-            unfuture(r, callback)
-      else
-        callback(null, future)
-
     mapper = (output, filter) =>
       filterargs = _(filter[1]).map (a) =>
         context.get(a)
@@ -72,7 +62,7 @@ module.exports = class Variable
 
             counter -= 1
             if counter == 0
-              unfuture execute(), (err, obj) =>
+              Liquid.Helpers.unfuture execute(), (err, obj) =>
                 result.deliver err, obj
 
         result

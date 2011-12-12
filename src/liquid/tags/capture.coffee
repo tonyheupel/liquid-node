@@ -11,7 +11,7 @@ Liquid = require "../../liquid"
 # Capture is useful for saving content for use later in your template, such as
 # in a sidebar or footer.
 #
-class Liquid.Capture extends Liquid.Block
+class Liquid.Capture extends require("../block")
   Syntax = /(\w+)/
   SyntaxHelp = "Syntax Error in 'capture' - Valid syntax: capture [var]"
 

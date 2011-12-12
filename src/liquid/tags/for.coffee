@@ -45,7 +45,7 @@ futures = require "futures"
 # forloop.first:: Returns true if the item is the first item.
 # forloop.last:: Returns true if the item is the last item.
 #
-class Liquid.For extends Liquid.Block
+class Liquid.For extends require("../block")
   SyntaxHelp = "Syntax Error in 'for loop' - Valid syntax: for [item] in [collection]"
   Syntax = ///
       (\w+)\s+in\s+
@@ -78,59 +78,59 @@ class Liquid.For extends Liquid.Block
   render: (context) ->
     context.registers.for or= {}
 
-    collection = context.get(@collectionName)
-    # TODO: Range?
+    Liquid.Helpers.unfuture context.get(@collectionName), (err, collection) =>
+      # TODO: Range?
 
-    return @renderElse(context) unless collection.forEach
+      return @renderElse(context) unless collection.forEach
 
-    from = if @attributes.offset == "continue"
-      Number(context.registers["for"][@name]) or 0
-    else
-      Number(context[@attributes.offset]) or 0
+      from = if @attributes.offset == "continue"
+        Number(context.registers["for"][@name]) or 0
+      else
+        Number(context[@attributes.offset]) or 0
 
-    limit = context[@attributes.limit]
-    to    = if limit then Number(limit) + from else null
+      limit = context[@attributes.limit]
+      to    = if limit then Number(limit) + from else null
 
-    segment = @sliceCollectionUsingEach(collection, from, to)
+      segment = @sliceCollectionUsingEach(collection, from, to)
 
-    return @renderElse(context) if segment.length == 0
+      return @renderElse(context) if segment.length == 0
 
-    segment = _.reverse segment if @reversed
+      segment = _.reverse segment if @reversed
 
-    length = segment.length
+      length = segment.length
 
-    # Store our progress through the collection for the continue flag
-    context.registers["for"][@name] = from + segment.length
+      # Store our progress through the collection for the continue flag
+      context.registers["for"][@name] = from + segment.length
 
-    context.stack =>
-      result = futures.future()
-      chunks = []
+      context.stack =>
+        result = futures.future()
+        chunks = []
 
-      futures.forEachAsync(segment, (next, item, index) =>
-        context.set @variableName, item
-        context.set "forloop",
-          name    : @name
-          length  : length
-          index   : index + 1
-          index0  : index,
-          rindex  : length - index
-          rindex0 : length - index - 1
-          first   : index == 0
-          last    : index == length - 1
+        futures.forEachAsync(segment, (next, item, index) =>
+          context.set @variableName, item
+          context.set "forloop",
+            name    : @name
+            length  : length
+            index   : index + 1
+            index0  : index,
+            rindex  : length - index
+            rindex0 : length - index - 1
+            first   : index == 0
+            last    : index == length - 1
 
-        chunk = @renderAll(@forBlock, context)
+          chunk = @renderAll(@forBlock, context)
 
-        if chunk?.isFuture?
-          chunk.when (err, chunk) ->
+          if chunk?.isFuture?
+            chunk.when (err, chunk) ->
+              chunks[index] = chunk
+              next()
+          else
             chunks[index] = chunk
             next()
-        else
-          chunks[index] = chunk
-          next()
-      ).then ->
-        result.deliver null ,chunks.join("")
+        ).then ->
+          result.deliver null ,chunks.join("")
 
-      result
+        result
 
   sliceCollectionUsingEach: (collection, from, to) ->
     segments = []
