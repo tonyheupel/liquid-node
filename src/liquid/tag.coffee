@@ -1,6 +1,4 @@
-Liquid = require "liquid"
-
-module.exports = class Liquid.Tag
+module.exports = class Tag
   constructor: (@tagName, @markup, tokens) ->
     @parse(tokens)
 

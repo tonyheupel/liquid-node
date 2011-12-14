@@ -1,3 +1,5 @@
+Liquid = require("../src/liquid")
+
 module.exports =
   test_if: renderTest (assert_template_result) ->
 

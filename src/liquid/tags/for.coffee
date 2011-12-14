@@ -81,7 +81,9 @@ class Liquid.For extends require("../block")
     Liquid.Helpers.unfuture context.get(@collectionName), (err, collection) =>
       # TODO: Range?
 
-      return @renderElse(context) unless collection.forEach
+      return futures.future().deliver(err) if err
+
+      return @renderElse(context) unless collection and collection.forEach
 
       from = if @attributes.offset == "continue"
         Number(context.registers["for"][@name]) or 0
@@ -107,28 +109,31 @@ class Liquid.For extends require("../block")
         chunks = []
 
         futures.forEachAsync(segment, (next, item, index) =>
-          context.set @variableName, item
-          context.set "forloop",
-            name    : @name
-            length  : length
-            index   : index + 1
-            index0  : index,
-            rindex  : length - index
-            rindex0 : length - index - 1
-            first   : index == 0
-            last    : index == length - 1
+          try
+            context.set @variableName, item
+            context.set "forloop",
+              name    : @name
+              length  : length
+              index   : index + 1
+              index0  : index,
+              rindex  : length - index
+              rindex0 : length - index - 1
+              first   : index == 0
+              last    : index == length - 1
 
-          chunk = @renderAll(@forBlock, context)
+            chunk = @renderAll(@forBlock, context)
 
-          if chunk?.isFuture?
-            chunk.when (err, chunk) ->
+            if chunk?.isFuture?
+              chunk.when (err, chunk) ->
+                chunks[index] = chunk
+                next()
+            else
               chunks[index] = chunk
               next()
-          else
-            chunks[index] = chunk
-            next()
+          catch e
+            result.deliver e
         ).then ->
-          result.deliver null ,chunks.join("")
+          result.deliver null, chunks.join("")
 
         result
 

@@ -1,3 +1,5 @@
+Liquid = require("../src/liquid")
+
 module.exports =
   test_variable: (onExit, assert) ->
     variable = new Liquid.Variable('hello')

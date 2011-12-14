@@ -1,6 +1,4 @@
-# This is kind of ugly but I'm not really in the mood to put this in every test module.
-
-global.Liquid = require("../src/liquid")
+Liquid = require("../src/liquid")
 
 global.renderTest = (f) ->
   cnt = 0
@@ -22,7 +20,6 @@ global.renderTest = (f) ->
     f(assertTemplateResult(assert), assert)
     exit ->
       assert.eql(0, cnt, "Not all render-tasks have finished.")
-
 
 module.exports =
   testsTruth: (e, assert) ->

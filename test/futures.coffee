@@ -1,3 +1,4 @@
+Liquid = require("../src/liquid")
 futures = require "futures"
 testCase = require("nodeunit").testCase
 
@@ -29,6 +30,12 @@ module.exports =
       test: asyncResult(true)
 
     render 'NO', '{% if test %}YES{% else %}NO{% endif %}',
+      test: asyncResult(false)
+
+    render 'NO', '{% unless test %}YES{% else %}NO{% endunless %}',
+      test: asyncResult(true)
+
+    render 'YES', '{% unless test %}YES{% else %}NO{% endunless %}',
       test: asyncResult(false)
 
     render 'Monkeys', '{% capture heading %}{{animal}}{% endcapture %}{{heading}}'

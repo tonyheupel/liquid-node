@@ -1,3 +1,5 @@
+util = require "util"
+
 module.exports = class Liquid
   @FilterSeparator             = /\|/
   @ArgumentSeparator           = /,/
@@ -23,15 +25,29 @@ module.exports = class Liquid
   @TemplateParser              = ///(#{@PartialTemplateParser.source}|#{@AnyStartingTag.source})///
   @VariableParser              = ///\[[^\]]+\]|#{@VariableSegment.source}+\??///
 
-  # Errors
-  class @Error extends Error
-  class @ArgumentError extends @Error
-  class @ContextError extends @Error
-  class @FilterNotFound extends @Error
-  class @FileSystemError extends @Error
-  class @StandardError extends @Error
-  class @SyntaxError extends @Error
-  class @StackLevelError extends @Error
+# based on node's lib/assert.js
+customError = (name, inherit = global.Error) ->
+  error = (message) ->
+    @name = name
+    @message = message
+
+    if global.Error.captureStackTrace
+      global.Error.captureStackTrace(@, arguments.callee)
+
+  util.inherits(error, inherit)
+  error:: = inherit::
+  error
+
+Liquid.Error = customError "Error"
+
+# Errors
+[ "ArgumentError", "ContextError", "FilterNotFound",
+  "FilterNotFound", "FileSystemError", "StandardError",
+  "StackLevelError", "SyntaxError"
+].forEach (className) =>
+
+  Liquid[className] = customError("Liquid.#{className}", Liquid.Error)
+
 
 Liquid.Helpers          = require("./liquid/helpers")
 Liquid.Drop             = require("./liquid/drop")

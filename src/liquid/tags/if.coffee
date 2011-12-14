@@ -2,7 +2,7 @@ Liquid = require "../../liquid"
 _ = (require "underscore")._
 futures = require "futures"
 
-class Liquid.If extends require("../block")
+module.exports = class If extends require("../block")
   SyntaxHelp = "Syntax Error in tag 'if' - Valid syntax: if [expression]"
 
   Syntax = ///
@@ -39,11 +39,13 @@ class Liquid.If extends require("../block")
 
       blockToRender = null
 
-      futures.forEachAsync(@blocks, (next, block) ->
+      futures.forEachAsync(@blocks, (next, block, index) ->
         if blockToRender
           next()
         else
           Liquid.Helpers.unfuture block.evaluate(context), (err, ok) ->
+            return result.deliver err if err
+            ok = !ok if block.negate
             blockToRender = block if ok
             next()
       ).then =>
@@ -85,5 +87,4 @@ class Liquid.If extends require("../block")
     @blocks.push block
     @nodelist = block.attach([])
 
-Liquid.Template.registerTag "if", Liquid.If
-module.exports = Liquid.If
+Liquid.Template.registerTag "if", If

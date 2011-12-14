@@ -105,7 +105,7 @@ module.exports = class Context
     '': null
     'true': true
     'false': false
-    'empty': (v) -> v.length == 0
+    'empty': (v) -> !v or v.length == 0
     'blank': (v) -> !v or v.length == 0
 
   # Look up variable, either resolve directly after considering the name.
@@ -178,7 +178,7 @@ module.exports = class Context
           # Some special cases. If the part wasn't in square brackets and
           # no key with the same name was found we interpret following calls
           # as commands and call them on the current object
-        else if !partResolved and object.length and ["size", "first", "last"].indexOf(part) >= 0
+        else if !partResolved and object and object.length and ["size", "first", "last"].indexOf(part) >= 0
           object = switch part
             when "size"
               object.length

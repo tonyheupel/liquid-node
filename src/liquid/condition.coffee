@@ -24,7 +24,8 @@ module.exports = class Condition
     @childCondition = null
 
   evaluate: (context) ->
-    context or= new require("liquid/context")
+    LiquidContext = require("./context")
+    context or= new LiquidContext()
     result = @interpretCondition(@left, @right, @operator, context)
 
     switch @childRelation
@@ -67,7 +68,7 @@ module.exports = class Condition
     left = context.get(left)
     right = context.get(right)
 
-    operation = Liquid.Condition.operators[op]
+    operation = Condition.operators[op]
     throw new Error("Unknown operator #{op}") unless operation?
 
     if operation

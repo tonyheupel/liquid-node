@@ -1,3 +1,5 @@
+Liquid = require("../src/liquid")
+
 module.exports =
   test_assigned_variable: renderTest (render, assert) ->
     render  '.foo.',

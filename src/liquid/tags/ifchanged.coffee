@@ -7,6 +7,8 @@ class Liquid.Ifchanged extends require("../block")
       rendered = @renderAll(@nodelist, context)
 
       Liquid.Helpers.unfuture rendered, (err, output) ->
+        return futures.future().deliver(err) if err
+
         if output != context.registers["ifchanged"]
           context.registers["ifchanged"] = output
           output

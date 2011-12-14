@@ -1,6 +1,7 @@
 Liquid = require("../liquid")
 _ = require("underscore")._
 futures = require "futures"
+util = require "util"
 
 module.exports = class Block extends require("./tag")
   @IsTag             = ///^#{Liquid.TagStart.source}///
@@ -51,11 +52,11 @@ module.exports = class Block extends require("./tag")
   unknownTag: (tag, params, tokens) ->
     switch tag
       when 'else'
-        throw new SyntaxError("#{@blockName()} tag does not expect else tag")
+        throw new Liquid.SyntaxError("#{@blockName()} tag does not expect else tag")
       when 'end'
-        throw new SyntaxError("'end' is not a valid delimiter for #{@blockName()} tags. use #{@blockDelimiter()}")
+        throw new Liquid.SyntaxError("'end' is not a valid delimiter for #{@blockName()} tags. use #{@blockDelimiter()}")
       else
-        throw new SyntaxError("Unknown tag '#{tag}'")
+        throw new Liquid.SyntaxError("Unknown tag '#{tag}'")
 
   blockDelimiter: ->
     "end#{@blockName()}"
@@ -97,6 +98,7 @@ module.exports = class Block extends require("./tag")
           next()
       catch e
         context.handleError(e)
+        futureResult.deliver e
     ).then ->
       delivered = true
       result = result.join("")

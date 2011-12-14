@@ -62,8 +62,8 @@ module.exports = class Variable
 
             counter -= 1
             if counter == 0
-              Liquid.Helpers.unfuture execute(), (err, obj) =>
-                result.deliver err, obj
+              Liquid.Helpers.unfuture execute(), (args...) =>
+                result.deliver args...
 
         result
       else
