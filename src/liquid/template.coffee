@@ -28,7 +28,7 @@ module.exports = class Liquid.Template
   # Parse source code.
   # Returns self for easy chaining
   parse: (source) ->
-    @root = new Liquid.Document(@tokenize(source))
+    @root = new Liquid.Document(@tokenize(source), @)
     @
 
   # Render takes a hash with local variables.

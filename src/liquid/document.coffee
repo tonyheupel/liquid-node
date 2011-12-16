@@ -1,6 +1,6 @@
 module.exports = class Liquid extends require("./block")
   # we don't need markup to open this block
-  constructor: (tokens) ->
+  constructor: (tokens, @template) ->
     @parse(tokens)
 
   # There isn't a real delimter

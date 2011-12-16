@@ -1,5 +1,5 @@
 module.exports = class Tag
-  constructor: (@tagName, @markup, tokens) ->
+  constructor: (@tagName, @markup, tokens, @template) ->
     @parse(tokens)
 
   parse: (tokens) ->

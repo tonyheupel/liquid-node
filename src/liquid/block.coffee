@@ -27,7 +27,7 @@ module.exports = class Block extends require("./tag")
 
           # fetch the tag from registered blocks
           if tag = Liquid.Template.tags[match[1]]
-            @nodelist.push new tag(match[1], match[2], tokens)
+            @nodelist.push new tag(match[1], match[2], tokens, @template)
           else
             # this tag is not registered with the system
             # pass it to the current block for special
