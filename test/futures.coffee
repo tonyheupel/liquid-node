@@ -9,10 +9,34 @@ asyncResult = (result) ->
     f
 
 module.exports =
+  test_futures: (exit, assert) ->
+    finalValue = null
+
+    input = futures.future()
+    output = Liquid.Helpers.unfuture input, (err, value) ->
+      f = futures.future()
+
+      todo = -> f.deliver(null, value + 1)
+      setTimeout(todo, 10)
+
+      f
+
+    output.when (err, value) ->
+      finalValue = value
+
+    input.deliver(null, 1)
+
+    exit ->
+      assert.eql 2, finalValue
+
+
   test_async_variable: renderTest (render, assert) ->
 
     render 'worked', '{{ test }}',
       test: asyncResult("worked")
+
+    render 'worked', '{{ test.text }}',
+      test: asyncResult({ text: "worked" })
 
     render 'WORKED', '{{ test | upcase }}',
       test: asyncResult("worked")

@@ -1,5 +1,6 @@
 Liquid = require "../liquid"
 _ = require("underscore")._
+futures = require "futures"
 
 module.exports = class Context
 
@@ -141,17 +142,21 @@ module.exports = class Context
     scope = _(@scopes).detect (s) ->
       s.hasOwnProperty?(key)
 
+    variable = null
+
     scope or= _(@environments).detect (e) =>
       variable = @lookupAndEvaluate(e, key)
+
     scope or= @environments[@environments.length-1] or @scopes[@scopes.length-1]
+
     variable or= @lookupAndEvaluate(scope, key)
 
-    variable = liquify(variable)
-    variable.context = @ if variable instanceof Liquid.Drop
-
-    variable
+    liquify(variable)
 
   variable: (markup) ->
+    future = futures.future()
+    unfuture = Liquid.Helpers.unfuture
+
     parts = Liquid.Helpers.scan(markup, Liquid.VariableParser)
     squareBracketed = /^\[(.*)\]$/
 
@@ -162,40 +167,81 @@ module.exports = class Context
 
     object = @findVariable(firstPart)
 
-    if object
-      _(parts).detect (part) =>
-        if partResolved = squareBracketed.exec(part)
-          part = @resolve(partResolved[1])
+    return object if parts.length == 0
 
-        # If object is a hash- or array-like object we look for the
-        # presence of the key and if its available we return it
-        if (_.isArray(object) and _.isNumber(part)) or
-           (object instanceof Object and _(object).keys().indexOf(part) >= 0)
+    delivered = false
 
-          res = @lookupAndEvaluate(object, part)
-          object = liquify(res)
+    mapper = (part, next) =>
+      return next() if object == null
 
-          # Some special cases. If the part wasn't in square brackets and
-          # no key with the same name was found we interpret following calls
-          # as commands and call them on the current object
-        else if !partResolved and object and object.length and ["size", "first", "last"].indexOf(part) >= 0
-          object = switch part
-            when "size"
-              object.length
-            when "first"
-              object[0]
-            when "last"
-              object[object.length-1]
+      unfuture object, (err, unfuturedObject) =>
+        object = liquify(unfuturedObject)
+
+        return next() if object == null
+
+        bracketMatch = squareBracketed.exec(part)
+
+        part = @resolve(bracketMatch[1]) if bracketMatch
+
+        unfuture part, (err, part) =>
+          isArrayAccess = (_.isArray(object) and _.isNumber(part))
+          isObjectAccess = (_.isObject(object) and (part of object))
+
+          # If object is a hash- or array-like object we look for the
+          # presence of the key and if its available we return it
+          if isArrayAccess or isObjectAccess
+            unfuture @lookupAndEvaluate(object, part), (err, result) ->
+              object = liquify(result)
+              next()
+
+          else
+            isSpecialAccess = (
+              !bracketMatch and object and
+              (_.isArray(object) or _.isString(object)) and
+              ["size", "first", "last"].indexOf(part) >= 0
+            )
+
+            # Some special cases. If the part wasn't in square brackets
+            # and no key with the same name was found we interpret
+            # following calls as commands and call them on the
+            # current object
+            if isSpecialAccess
+              object = switch part
+                when "size"
+                  liquify(object.length)
+                when "first"
+                  liquify(object[0])
+                when "last"
+                  liquify(object[object.length-1])
+                else
+                  liquify(object)
+
+              next()
+
             else
-              object
-        else
-          object = null
-          true # break loop
+              object = null
+              next()
 
-        object.context = @ if object instanceof Liquid.Drop
-        false
+    # The iterator walks through the parsed path step
+    # by step and waits for promises to be fulfilled.
+    iterator = (index) ->
+      try
+        mapper parts[index], (err) ->
+          index += 1
 
-    object
+          if index < parts.length
+            iterator(index)
+          else
+            delivered = true
+            future.deliver(null, object)
+      catch e
+        object = null
+        delivered = true
+        future.deliver("Couldn't walk variable: #{markup}", object)
+
+    iterator(0)
+
+    if delivered then object else future
 
   lookupAndEvaluate: (obj, key) ->
     value = obj[key]
@@ -220,7 +266,7 @@ module.exports = class Context
   liquify = (object) ->
     return object unless object?
 
-    if object.toLiquid?
+    if object.toLiquid instanceof Function
       object.toLiquid()
     else
       # TODO: implement toLiquid for native types

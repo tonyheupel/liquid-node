@@ -79,7 +79,6 @@ class Liquid.For extends require("../block")
     context.registers.for or= {}
 
     Liquid.Helpers.unfuture context.get(@collectionName), (err, collection) =>
-      # TODO: Range?
 
       return futures.future().deliver(err) if err
 
@@ -123,14 +122,15 @@ class Liquid.For extends require("../block")
 
             chunk = @renderAll(@forBlock, context)
 
-            if chunk?.isFuture?
-              chunk.when (err, chunk) ->
+            Liquid.Helpers.unfuture chunk, (err, chunk) ->
+              if err
+                console.log "Fail: #{err}"
+                next()
+              else
                 chunks[index] = chunk
                 next()
-            else
-              chunks[index] = chunk
-              next()
           catch e
+            console.log "for-loop failed: #{e}"
             result.deliver e
         ).then ->
           result.deliver null, chunks.join("")

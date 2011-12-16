@@ -45,7 +45,7 @@ module.exports = class Variable
           context.invoke(filter[0], output, filterargs...)
         catch e
           throw e unless e instanceof Liquid.FilterNotFound
-          throw new Liquid.FilterNotFound("Error - filter '#{filter[0]}' in '#{@markup.strip}' could not be found.")
+          throw new Liquid.FilterNotFound("Error - filter '#{filter[0]}' in '#{@markup}' could not be found.")
 
       if waitingFor.length > 0
         counter = waitingFor.length
@@ -69,4 +69,5 @@ module.exports = class Variable
       else
         execute()
 
-    _(@filters).inject mapper, context.get(@name)
+    Liquid.Helpers.unfuture context.get(@name), (err, value) =>
+      _(@filters).inject mapper, value

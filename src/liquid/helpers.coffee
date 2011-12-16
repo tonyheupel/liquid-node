@@ -1,27 +1,40 @@
 futures = require "futures"
 
 module.exports =
-  unfuture: (future, callback) ->
+  unfuture: (future, options = {}) ->
+    if options instanceof Function
+      options =
+        callback: options
+
+    callback = options.callback
+
     if not future?.isFuture?
-      callback(null, future)
+      if callback
+        callbackResult = callback(null, future)
+        module.exports.unfuture(callbackResult)
+      else
+        future
+
     else
       singleFuture = futures.future()
 
       _unfuture = (future) ->
         future.when (err, args...) ->
           if err
-            callbackResult = callback(arguments...)
+            callback(arguments...)
             singleFuture.deliver(arguments...)
-          else if r?.isFuture?
-            _unfuture(r)
-          else
-            callbackResult = callback(arguments...)
+          else if args[0] and args[0].isFuture?
+            _unfuture(args[0])
+          else if callback
+            result = callback(arguments...)
 
-            if callbackResult?.isFuture?
-              callbackResult.when ->
-                singleFuture.deliver(arguments...)
+            if result?.isFuture?
+              callback = null
+              _unfuture(result)
             else
-              singleFuture.deliver(arguments...)
+              singleFuture.deliver(err, result)
+          else
+            singleFuture.deliver(arguments...)
 
       _unfuture(future)
       singleFuture
@@ -46,3 +59,8 @@ module.exports =
 
     _scan(string)
     result
+
+  functionName: (f) ->
+    return f.__name__ if f.__name__
+    return f.name if f.name
+    f.toString().match(/\W*function\s+([\w\$]+)\(/)?[1]

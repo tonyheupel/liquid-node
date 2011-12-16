@@ -26,13 +26,19 @@ module.exports = class Condition
   evaluate: (context) ->
     LiquidContext = require("./context")
     context or= new LiquidContext()
+
     result = @interpretCondition(@left, @right, @operator, context)
+    unfuture = require("./helpers").unfuture
 
     switch @childRelation
       when "or"
-        result or @childCondition.evaluate(context)
+        unfuture result, (err, result) =>
+          return result if result
+          unfuture @childCondition.evaluate(context)
       when "and"
-        result and @childCondition.evaluate(context)
+        unfuture result, (err, result) =>
+          return result unless result
+          unfuture @childCondition.evaluate(context)
       else
         result
 
@@ -65,13 +71,13 @@ module.exports = class Condition
     # return this as the result.
     return context.get(left) unless op?
 
-    left = context.get(left)
-    right = context.get(right)
-
     operation = Condition.operators[op]
     throw new Error("Unknown operator #{op}") unless operation?
 
-    if operation
-      operation(@, left, right)
-    else
-      null
+    left = context.get(left)
+    right = context.get(right)
+    unfuture = require("./helpers").unfuture
+
+    unfuture left, (err, left) =>
+      unfuture right, (err, right) =>
+        operation(@, left, right)
