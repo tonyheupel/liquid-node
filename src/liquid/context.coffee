@@ -44,6 +44,7 @@ module.exports = class Context
       args?[0]
 
   push: (newScope = {}) ->
+    Liquid.log "SCOPE PUSH"
     @scopes.unshift newScope
     throw new Error("Nesting too deep") if @scopes.length > 100
 
@@ -51,6 +52,7 @@ module.exports = class Context
     _(@scopes[0]).extend(newScope)
 
   pop: ->
+    Liquid.log "SCOPE POP"
     throw new Error("ContextError") if @scopes.length <= 1
     @scopes.shift()
 
@@ -76,9 +78,9 @@ module.exports = class Context
       @push(newScope)
       result = f()
 
-      if f?.isFuture?
-        f.when => @pop()
+      if futures.future.isFuture(result)
         popLater = true
+        result.when => @pop()
 
       result
     finally
@@ -90,10 +92,13 @@ module.exports = class Context
   # Only allow String, Numeric, Hash, Array, Proc, Boolean
   # or <tt>Liquid::Drop</tt>
   set: (key, value) ->
+    Liquid.log "[SET] %s %j", key, value
     @scopes[0][key] = value
 
   get: (key) ->
-    @resolve(key)
+    value = @resolve(key)
+    Liquid.log "[GET] %s %j", key, value
+    value
 
   hasKey: (key) ->
     !!@resolve(key)
@@ -151,7 +156,16 @@ module.exports = class Context
 
     variable or= @lookupAndEvaluate(scope, key)
 
-    liquify(variable)
+    f = futures.future()
+    delivered = false
+    result = null
+
+    Liquid.Helpers.unfuture variable, (err, variable) ->
+      result = liquify(variable)
+      f.deliver(err, result)
+      delivered = true
+
+    if delivered then result else f
 
   variable: (markup) ->
     future = futures.future()
