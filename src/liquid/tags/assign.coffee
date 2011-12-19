@@ -18,8 +18,12 @@ class Liquid.Assign extends require("../tag")
     super
 
   render: (context) ->
-    context.lastScope()[@to] = context.get(@from)
-    ''
+    value = context.get(@from)
+
+    Liquid.Helpers.unfuture value, (err, value) =>
+      Liquid.log "#{@from} -> #{@to}: %j", value
+      context.lastScope()[@to] = value
+      ''
 
 Liquid.Template.registerTag('assign', Liquid.Assign)
 module.exports = Liquid.Assign
