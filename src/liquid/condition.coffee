@@ -10,6 +10,10 @@ module.exports = class Condition
     '==': (cond, left, right) ->  cond.equalVariables(left, right)
     '!=': (cond, left, right) -> !cond.equalVariables(left, right)
     '<>': (cond, left, right) -> !cond.equalVariables(left, right)
+    '<':  (cond, left, right) -> left < right
+    '>':  (cond, left, right) -> left > right
+    '<=': (cond, left, right) -> left <= right
+    '>=': (cond, left, right) -> left >= right
     'contains': (cond, left, right) ->
       if left and right
         left.indexOf(right) >= 0
