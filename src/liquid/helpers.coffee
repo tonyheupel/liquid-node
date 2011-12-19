@@ -20,21 +20,24 @@ module.exports =
 
       _unfuture = (future) ->
         future.when (err, args...) ->
-          if err
-            callback(arguments...)
-            singleFuture.deliver(arguments...)
-          else if args[0] and args[0].isFuture?
-            _unfuture(args[0])
-          else if callback
-            result = callback(arguments...)
+          try
+            if err
+              callback(arguments...)
+              singleFuture.deliver(arguments...)
+            else if args[0] and args[0].isFuture?
+              _unfuture(args[0])
+            else if callback
+              result = callback(arguments...)
 
-            if result?.isFuture?
-              callback = null
-              _unfuture(result)
+              if result?.isFuture?
+                callback = null
+                _unfuture(result)
+              else
+                singleFuture.deliver(err, result)
             else
-              singleFuture.deliver(err, result)
-          else
-            singleFuture.deliver(arguments...)
+              singleFuture.deliver(arguments...)
+          catch e
+            console.log e
 
       _unfuture(future)
       singleFuture
