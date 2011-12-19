@@ -1,6 +1,10 @@
 util = require "util"
 
 module.exports = class Liquid
+  @log = ->
+    if debug?
+      console.log(arguments...)
+
   @FilterSeparator             = /\|/
   @ArgumentSeparator           = /,/
   @FilterArgumentSeparator     = /\:/
