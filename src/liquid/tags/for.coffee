@@ -124,13 +124,13 @@ class Liquid.For extends require("../block")
 
             Liquid.Helpers.unfuture chunk, (err, chunk) ->
               if err
-                console.log "Fail: #{err}"
+                console.log "for-loop-item failed: %s %s", err, err.stack
                 next()
               else
                 chunks[index] = chunk
                 next()
           catch e
-            console.log "for-loop failed: #{e}"
+            console.log "for-loop failed: %s %s", e, e.stack
             result.deliver e
         ).then ->
           result.deliver null, chunks.join("")
