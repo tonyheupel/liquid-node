@@ -27,6 +27,6 @@
   },
   "scripts": {
    "test": "expresso test/*.coffee",
-   "preinstall": "cake build"
+   "postinstall": "cake build"
   }
 }
