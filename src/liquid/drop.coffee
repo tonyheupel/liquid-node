@@ -22,7 +22,8 @@ _ = require("underscore")._
 #
 #   tmpl.render(product: new ProductDrop) # will invoke topSales query.
 #
-# Your drop can either implement the methods sans any parameters or implement the before_method(name) method which is a
+# Your drop can either implement the methods sans any parameters or implement the
+# before_method(name) method which is a
 # catch all
 module.exports = class Drop
 
@@ -31,7 +32,6 @@ module.exports = class Drop
 
   hasKey: (key) ->
     true
-
 
   invokeDrop: (methodOrKey) ->
     if methodOrKey and methodOrKey != '' and @[methodOrKey]?
@@ -46,3 +46,6 @@ module.exports = class Drop
 
   get: (methodOrKey) ->
     invokeDrop(methodOrKey)
+
+  toLiquid: ->
+    @
