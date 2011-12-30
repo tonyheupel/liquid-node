@@ -62,12 +62,20 @@ module.exports = class Variable
 
             counter -= 1
             if counter == 0
-              Liquid.Helpers.unfuture execute(), (args...) =>
-                result.deliver args...
+              Liquid.Helpers.unfuture execute() =>
+                result.deliver arguments...
 
         result
       else
         execute()
 
     Liquid.Helpers.unfuture context.get(@name), (err, value) =>
-      _(@filters).inject mapper, value
+      Liquid.Helpers.unfuture _(@filters).inject(mapper, value), (err, value) =>
+        if value instanceof Liquid.Drop
+          if typeof value.toString == "function"
+            value.context = context
+            return value.toString()
+          else
+            return "Liquid.Drop"
+        else
+          value
