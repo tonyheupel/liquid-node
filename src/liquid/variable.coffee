@@ -62,7 +62,7 @@ module.exports = class Variable
 
             counter -= 1
             if counter == 0
-              Liquid.Helpers.unfuture execute() =>
+              Liquid.Helpers.unfuture execute(), =>
                 result.deliver arguments...
 
         result
