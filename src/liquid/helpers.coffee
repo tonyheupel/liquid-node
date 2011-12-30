@@ -37,7 +37,7 @@ module.exports =
             else
               singleFuture.deliver(arguments...)
           catch e
-            console.log e
+            console.log "Couldn't unfuture: %s\n%s", e, e.stack
 
       _unfuture(future)
       singleFuture
