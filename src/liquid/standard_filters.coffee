@@ -3,20 +3,44 @@ _ = require("underscore")._
 toNumber = (input) ->
   Number(input)
 
+toString = (input) ->
+  return unless input
+
+  if _.isString(input)
+    input
+  else if typeof input.toString == "function"
+    input.toString()
+  else
+    Object::toString.call(input)
+
 module.exports =
 
   size: (input) ->
     input.length
 
   downcase: (input) ->
-    String(input).toLowerCase()
+    toString(input).toLowerCase()
 
   upcase: (input) ->
-    String(input).toUpperCase()
+    toString(input).toUpperCase()
+
+  append: (input, other) ->
+    [toString(input), toString(other)].join()
+
+  prepend: (input, other) ->
+    [toString(other), toString(input)].join()
+
+  empty: (input) ->
+    return true unless input
+    return false unless input.length?
+    true
 
   ## TODO!!!
 
   truncate: (input, length = 50, truncateString = '...') ->
+    input = toString(input)
+    truncateString = toString(truncateString)
+
     return unless input?
     return unless input.slice
 
@@ -27,6 +51,8 @@ module.exports =
     if input.length > length then input[..l] + truncateString else input
 
   truncatewords: (input, words = 15, truncateString = '...') ->
+    input = toString(input)
+
     return unless input?
     return unless input.slice
 
@@ -41,6 +67,8 @@ module.exports =
       input
 
   split: (input, pattern) ->
+    input = toString(input)
+    return unless input
     input.split(pattern)
 
   ## TODO!!!
