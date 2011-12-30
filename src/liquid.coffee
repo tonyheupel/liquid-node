@@ -2,8 +2,12 @@ util = require "util"
 
 module.exports = class Liquid
   @log = ->
-    if debug?
+    return unless debug?
+
+    try
       console.log(arguments...)
+    catch e
+      console.log "Failed to log. %s", e
 
   @FilterSeparator             = /\|/
   @ArgumentSeparator           = /,/
