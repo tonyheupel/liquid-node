@@ -16,8 +16,8 @@ module.exports = class Block extends require("./tag")
     while tokens.length > 0
       token = tokens.shift()
 
-      if Liquid.Block.IsTag.test(token)
-        if match = Liquid.Block.FullToken.exec(token)
+      if Block.IsTag.test(token)
+        if match = Block.FullToken.exec(token)
           # if we found the proper block delimitor just end parsing
           # here and let the outer block proceed
 
