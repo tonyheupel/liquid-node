@@ -160,8 +160,8 @@ module.exports = class Context
     delivered = false
     result = null
 
-    Liquid.Helpers.unfuture variable, (err, variable) ->
-      result = liquify(variable)
+    Liquid.Helpers.unfuture variable, (err, variable) =>
+      result = @liquify(variable)
       f.deliver(err, result)
       delivered = true
 
@@ -189,7 +189,7 @@ module.exports = class Context
       return next() if object == null
 
       unfuture object, (err, unfuturedObject) =>
-        object = liquify(unfuturedObject)
+        object = @liquify(unfuturedObject)
 
         return next() if object == null
 
@@ -204,8 +204,8 @@ module.exports = class Context
           # If object is a hash- or array-like object we look for the
           # presence of the key and if its available we return it
           if isArrayAccess or isObjectAccess
-            unfuture @lookupAndEvaluate(object, part), (err, result) ->
-              object = liquify(result)
+            unfuture @lookupAndEvaluate(object, part), (err, result) =>
+              object = @liquify(result)
               next()
 
           else
@@ -222,13 +222,13 @@ module.exports = class Context
             if isSpecialAccess
               object = switch part
                 when "size"
-                  liquify(object.length)
+                  @liquify(object.length)
                 when "first"
-                  liquify(object[0])
+                  @liquify(object[0])
                 when "last"
-                  liquify(object[object.length-1])
+                  @liquify(object[object.length-1])
                 else
-                  liquify(object)
+                  @liquify(object)
 
               next()
 
@@ -277,11 +277,16 @@ module.exports = class Context
           lastScope[key] = @lookupAndEvaluate(env, key)
           true
 
-  liquify = (object) ->
+  liquify: (object) ->
     return object unless object?
 
-    if object.toLiquid instanceof Function
-      object.toLiquid()
+    if typeof object.toLiquid == "function"
+      object = object.toLiquid()
     else
       # TODO: implement toLiquid for native types
-      object
+      true
+
+    if object instanceof Liquid.Drop
+      object.context = @
+
+    object
