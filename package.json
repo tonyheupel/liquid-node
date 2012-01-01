@@ -13,7 +13,7 @@
     "url": "git://github.com/sirlantis/liquid-node.git"
   },
   "directories": { "src": "./src", "lib": "./lib", "test": "./test" },
-  "main": "./lib/liquid.js",
+  "main": "./lib/index.js",
   "engines": {
     "node": "~0.6.5"
   },
