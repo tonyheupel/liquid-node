@@ -1,4 +1,4 @@
-Liquid = require("../src/liquid")
+Liquid = require("../src/index")
 
 module.exports =
   test_assigned_variable: renderTest (render, assert) ->

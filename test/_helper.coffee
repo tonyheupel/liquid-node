@@ -1,4 +1,4 @@
-Liquid = require("../src/liquid")
+Liquid = require("../src/index")
 
 global.renderTest = (f) ->
   map = {}

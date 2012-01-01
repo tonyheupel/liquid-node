@@ -1,4 +1,4 @@
-Liquid = require("../src/liquid")
+Liquid = require("../src/index")
 futures = require "futures"
 testCase = require("nodeunit").testCase
 
