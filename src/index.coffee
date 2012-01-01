@@ -24,7 +24,6 @@ Liquid.Error = customError "Error"
 
   Liquid[className] = customError("Liquid.#{className}", Liquid.Error)
 
-
 Liquid.Helpers          = require("./liquid/helpers")
 Liquid.Drop             = require("./liquid/drop")
 Liquid.Strainer         = require("./liquid/strainer")
@@ -42,10 +41,15 @@ class Liquid.ElseCondition extends Liquid.Condition
 
 Liquid.Template.registerFilter(Liquid.StandardFilters)
 
-[ "assign", "capture", "comment", "decrement",
-  "for", "if", "ifchanged", "increment",
-  "raw", "unless"
-].forEach (tag) ->
-  require("./liquid/tags/#{tag}")
+require("./liquid/tags/assign")
+require("./liquid/tags/capture")
+require("./liquid/tags/comment")
+require("./liquid/tags/decrement")
+require("./liquid/tags/for")
+require("./liquid/tags/if")
+require("./liquid/tags/ifchanged")
+require("./liquid/tags/increment")
+require("./liquid/tags/raw")
+require("./liquid/tags/unless")
 
 module.exports = Liquid
