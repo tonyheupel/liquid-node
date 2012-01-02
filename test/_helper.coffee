@@ -1,4 +1,12 @@
 Liquid = require("../src/index")
+Liquid.async.debug = true
+
+# JSON.stringify fails for circular dependencies
+stringify = (v) ->
+  try
+    JSON.stringify(v, null, 2)
+  catch e
+    "Couldn't stringify: #{v}"
 
 global.renderTest = (f) ->
   map = {}
@@ -24,19 +32,19 @@ global.renderTest = (f) ->
 
           assert.type actual, "string"
 
-          assert.eql actual, expected, JSON.stringify({
+          assert.eql actual, expected, stringify({
             template,
             expected,
             actual,
             assigns
-          }, null, 2)
+          })
       else
-        assert.eql actual, expected, JSON.stringify({
+        assert.eql actual, expected, stringify({
           template,
           expected,
           actual,
           assigns
-        }, null, 2)
+        })
 
   (exit, assert) ->
     f(assertTemplateResult(assert), assert)

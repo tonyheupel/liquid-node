@@ -1,6 +1,5 @@
-Liquid = require("../src/index")
 require "./_helper"
-Liquid.async.debug = true
+Liquid = require("../src/index")
 
 asyncResult = (result) ->
   ->
@@ -83,3 +82,18 @@ module.exports =
 
     render "- item1\n- item2\n- item3\n", doc,
       products: products
+
+  ###
+  TODO: This crashes due to too deep recursion.
+
+  test_too_much_memory: renderTest (render, assert) ->
+    doc = "{{ a"
+    doc += ".a" while doc.length < (1024 * 1024)
+    doc += ".b"
+    doc += " }}"
+
+    a = {}
+    a.a = -> a
+    a.b = -> "STOP"
+
+    render "STOP", doc, a: a
