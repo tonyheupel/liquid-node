@@ -2,31 +2,54 @@
 
 ## Why this fork?
 
-LiquidNode is a port of the Liquid template engine (originally written in Ruby) to *Node.js*. It uses Futures to support non-blocking, asynchronous variables/filters/blocks. Most code has been translated from Ruby to CoffeeScript, with a few adjustments (casing) to make it feel more *Coffee-/JavaScripty*.
+LiquidNode is a port of the Liquid template engine (originally written in Ruby) to *Node.js*. It uses Promises to support non-blocking, asynchronous variables/filters/blocks. Most code has been translated from Ruby to CoffeeScript, with a few adjustments (casing) to make it feel more *Coffee-/JavaScripty*.
 
 ## How [LiquidNode](https://github.com/sirlantis/liquid-node) differs from [Liquid](https://github.com/Shopify/liquid/)
 
 The power of Node.js lies in its non-blocking nature. This presents a problem when using expressions like `{{ store.items | count }}` which may hide a blocking SQL-query.
 
-LiquidNode tries to solve that problem by using [Futures and Promises](http://en.wikipedia.org/wiki/Futures_and_promises). The programmer must return Future-objects from asynchronous functions - designers don't have to care about it.
+LiquidNode tries to solve that problem by using [Futures and Promises](http://en.wikipedia.org/wiki/Futures_and_promises). The programmer must return Promises from asynchronous functions - designers don't have to care about it.
 
-## Implementation of Futures
+## Implementation of Promises
 
-I decided to use the [**futures** package](https://github.com/coolaj86/futures) as an implementation of Futures (for now).
+I started with the [**futures** package](https://github.com/coolaj86/futures) as an implementation of Promises but it didn't chain as nicely as I had hoped for. So here is LiquidNode's custom Promise implementation:
 
 ```coffeescript
 fs        = require "fs"
-futures   = require "futures"
+{async}   = require "liquid-node"
 
 class Server
   name: ->
     "Falkor"
 
+  # A deferred can either be resolved (no error) or rejected (error).
+  think: ->
+    async.promise (deferred) ->
+      later = -> deferred.resolve(42)
+      setTimeout(later, 1000)
+
+  # This is an example of how to wait for a Promise:
+  patientMethod: ->
+    deepThought = @think()
+
+    deepThought
+      .done (answer) -> console.log "The answer is: %s.", answer
+      .fail (e) -> console.log "Universe reset: %s.", e
+      .always (e) -> console.log "Look on the bright side of life."
+
+    # By the way: the left-hand side of async.promise returns a
+    # read-only view (Promise) to the Deferred. This means an
+    # Illuminati can't interfere with it on this side of the
+    # Promise.
+    #
+    # deepThought.resolve(23) isn't available.
+
+  # For node-ish callbacks you can use `deferred.node`. This
+  # will automatically resolve/reject based on the first argument.
   accounts: ->
-    future = futures.future()
-    fs.readFile "/etc/passwd", "utf-8", (err, data) ->
-      future.deliver err, data
-    future
+    async.promise (deferred) ->
+      fs.readFile "/etc/passwd", "utf-8", deferred.node
+
 ```
 
 ## State of development

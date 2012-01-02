@@ -69,5 +69,10 @@ module.exports =
     context.set 'var', 1000
     context.addFilters(MoneyFilter)
 
-    assert.equal ' 1000$ ',
-      new Liquid.Variable("var | money").render(context)
+    called = false
+    new Liquid.Variable("var | money").render(context).always (err, result) ->
+      assert.equal ' 1000$ ', result
+      called = true
+
+    onExit ->
+      assert.equal true, called

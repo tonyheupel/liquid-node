@@ -1,6 +1,5 @@
 Liquid = require("../liquid")
 _ = require("underscore")._
-futures = require "futures"
 
 # Holds variables. Variables are only loaded "just in time"
 # and are not evaluated as part of the render stage
@@ -38,7 +37,7 @@ module.exports = class Variable
         context.get(a)
 
       dependencies = [output, filterargs...]
-      waitingFor = _(dependencies).select (o) -> o?.isFuture?
+      waitingFor = _(dependencies).select (o) -> Liquid.async.isPromise(o)
 
       execute = =>
         try
@@ -49,33 +48,29 @@ module.exports = class Variable
 
       if waitingFor.length > 0
         counter = waitingFor.length
-        result = futures.future()
 
-        dependencies.forEach (k, i) =>
-          return unless k?.isFuture?
+        Liquid.async.promise (result) ->
+          dependencies.forEach (k, i) =>
+            return unless Liquid.async.isPromise(k)
 
-          k.when (err, r) =>
-            if i == 0
-              output = r
-            else
-              filterargs[i-1] = r
+            k.always (err, r) =>
+              if i == 0
+                output = r
+              else
+                filterargs[i-1] = r
 
-            counter -= 1
-            if counter == 0
-              Liquid.Helpers.unfuture execute(), =>
-                result.deliver arguments...
-
-        result
+              counter--
+              result.drain(execute()) if counter == 0
       else
         execute()
 
-    Liquid.Helpers.unfuture context.get(@name), (err, value) =>
-      Liquid.Helpers.unfuture _(@filters).inject(mapper, value), (err, value) =>
+    Liquid.async.when(context.get(@name)).when (value) =>
+      Liquid.async.reduce(@filters, mapper, value).when (value) =>
         if value instanceof Liquid.Drop
           if typeof value.toString == "function"
             value.context = context
-            return value.toString()
+            value.toString()
           else
-            return "Liquid.Drop"
+            "Liquid.Drop"
         else
           value

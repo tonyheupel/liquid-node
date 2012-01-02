@@ -1,6 +1,5 @@
 Liquid = require "../../liquid"
 _ = require("underscore")._
-futures = require "futures"
 
 # "For" iterates over an array or collection.
 # Several useful variables are available to you within the loop.
@@ -45,7 +44,7 @@ futures = require "futures"
 # forloop.first:: Returns true if the item is the first item.
 # forloop.last:: Returns true if the item is the last item.
 #
-class Liquid.For extends require("../block")
+module.exports = class For extends Liquid.Block
   SyntaxHelp = "Syntax Error in 'for loop' - Valid syntax: for [item] in [collection]"
   Syntax = ///
       (\w+)\s+in\s+
@@ -78,10 +77,7 @@ class Liquid.For extends require("../block")
   render: (context) ->
     context.registers.for or= {}
 
-    Liquid.Helpers.unfuture context.get(@collectionName), (err, collection) =>
-
-      return futures.future().deliver(err) if err
-
+    Liquid.async.when(context.get(@collectionName)).when (collection) =>
       return @renderElse(context) unless collection and collection.forEach
 
       from = if @attributes.offset == "continue"
@@ -104,38 +100,24 @@ class Liquid.For extends require("../block")
       context.registers["for"][@name] = from + segment.length
 
       context.stack =>
-        result = futures.future()
-        chunks = []
+        Liquid.async.map segment, (item, index) =>
+            try
+              context.set @variableName, item
+              context.set "forloop",
+                name    : @name
+                length  : length
+                index   : index + 1
+                index0  : index,
+                rindex  : length - index
+                rindex0 : length - index - 1
+                first   : index == 0
+                last    : index == length - 1
 
-        futures.forEachAsync(segment, (next, item, index) =>
-          try
-            context.set @variableName, item
-            context.set "forloop",
-              name    : @name
-              length  : length
-              index   : index + 1
-              index0  : index,
-              rindex  : length - index
-              rindex0 : length - index - 1
-              first   : index == 0
-              last    : index == length - 1
-
-            chunk = @renderAll(@forBlock, context)
-
-            Liquid.Helpers.unfuture chunk, (err, chunk) ->
-              if err
-                console.log "for-loop-item failed: %s %s", err, err.stack
-                next()
-              else
-                chunks[index] = chunk
-                next()
-          catch e
-            console.log "for-loop failed: %s %s", e, e.stack
-            result.deliver e
-        ).then ->
-          result.deliver null, chunks.join("")
-
-        result
+              @renderAll(@forBlock, context)
+            catch e
+              console.log "for-loop failed: %s %s", e, e.stack
+              throw e
+          .when (chunks) -> chunks.join("")
 
   sliceCollectionUsingEach: (collection, from, to) ->
     segments = []
@@ -160,5 +142,4 @@ class Liquid.For extends require("../block")
     else
       ""
 
-Liquid.Template.registerTag "for", Liquid.For
-module.exports = Liquid.For
+Liquid.Template.registerTag "for", For

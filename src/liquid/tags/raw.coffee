@@ -1,6 +1,6 @@
 Liquid = require "../../liquid"
 
-class Liquid.Raw extends require("../block")
+module.exports = class Raw extends Liquid.Block
   parse: (tokens) ->
     @nodelist or= []
     @nodelist.pop() while nodelist.length() > 0
@@ -15,5 +15,4 @@ class Liquid.Raw extends require("../block")
 
     @nodelist.push(token) unless token.length == 0
 
-Liquid.Template.registerTag "raw", Liquid.Raw
-module.exports = Liquid.Raw
+Liquid.Template.registerTag "raw", Raw

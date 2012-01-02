@@ -1,19 +1,16 @@
 Liquid = require "../../liquid"
-futures = require "futures"
 
-class Liquid.Ifchanged extends require("../block")
+module.exports = class Ifchanged extends Liquid.Block
   render: (context) ->
     context.stack =>
       rendered = @renderAll(@nodelist, context)
 
-      Liquid.Helpers.unfuture rendered, (err, output) ->
-        return futures.future().deliver(err) if err
+      Liquid.async.when(rendered)
+        .when (output) ->
+          if output != context.registers["ifchanged"]
+            context.registers["ifchanged"] = output
+            output
+          else
+            ""
 
-        if output != context.registers["ifchanged"]
-          context.registers["ifchanged"] = output
-          output
-        else
-          ""
-
-Liquid.Template.registerTag "ifchanged", Liquid.Ifchanged
-module.exports = Liquid.Ifchanged
+Liquid.Template.registerTag "ifchanged", Ifchanged

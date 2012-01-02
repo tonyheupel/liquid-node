@@ -9,14 +9,20 @@ global.renderTest = (f) ->
     (expected, template, assigns, message) ->
       actual = Liquid.Template.parse(template).renderOrRaise(assigns)
 
-      if actual?.isFuture?
+      if Liquid.async.isPromise(actual)
         myId = uniqueId++
         cnt += 1
         map[myId] = { expected, template, assigns }
 
-        actual.when (err, actual) ->
+        actual.always (err, actual) ->
           cnt -= 1
           delete map[myId]
+
+          if err
+            console.log "Unexpected error: %s, %s", err, err.stack
+            assert.eql err, null
+
+          assert.type actual, "string"
 
           assert.eql actual, expected, JSON.stringify({
             template,

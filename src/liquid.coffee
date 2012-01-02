@@ -30,3 +30,5 @@ module.exports = class Liquid
   @PartialTemplateParser       = ///#{@TagStart.source}.*?#{@TagEnd.source}|#{@VariableStart.source}.*?#{@VariableIncompleteEnd.source}///
   @TemplateParser              = ///(#{@PartialTemplateParser.source}|#{@AnyStartingTag.source})///
   @VariableParser              = ///\[[^\]]+\]|#{@VariableSegment.source}+\??///
+
+  @async = require("./liquid/async")

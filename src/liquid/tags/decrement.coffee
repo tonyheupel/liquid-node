@@ -18,7 +18,7 @@ Liquid = require "../../liquid"
 #    Hello: -2
 #    Hello: -3
 #
-class Liquid.Decrement extends require("../tag")
+module.exports = class Decrement extends Liquid.Tag
   constructor: (tagName, markup, tokens) ->
     @variable = markup.trim()
     super
@@ -29,5 +29,4 @@ class Liquid.Decrement extends require("../tag")
     context.environments[0][@variable] = value
     value.toString()
 
-Liquid.Template.registerTag "decrement", Liquid.Decrement
-module.exports = Liquid.Decrement
+Liquid.Template.registerTag "decrement", Decrement

@@ -1,6 +1,6 @@
 Liquid = require "../../liquid"
 
-class Liquid.Assign extends require("../tag")
+module.exports = class Assign extends Liquid.Tag
   SyntaxHelp = "Syntax Error in 'assign' - Valid syntax: assign [var] = [source]"
   Syntax = ///
       ((?:#{Liquid.VariableSignature.source})+)
@@ -20,10 +20,9 @@ class Liquid.Assign extends require("../tag")
   render: (context) ->
     value = context.get(@from)
 
-    Liquid.Helpers.unfuture value, (err, value) =>
+    Liquid.async.when(value).when (value) =>
       Liquid.log "#{@from} -> #{@to}: %j", value
       context.lastScope()[@to] = value
       ''
 
-Liquid.Template.registerTag('assign', Liquid.Assign)
-module.exports = Liquid.Assign
+Liquid.Template.registerTag('assign', Assign)

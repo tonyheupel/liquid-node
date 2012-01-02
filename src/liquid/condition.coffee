@@ -1,3 +1,5 @@
+Liquid = require("../liquid")
+
 # Container for liquid nodes which conveniently wraps decision making logic
 #
 # Example:
@@ -28,21 +30,17 @@ module.exports = class Condition
     @childCondition = null
 
   evaluate: (context) ->
-    LiquidContext = require("./context")
-    context or= new LiquidContext()
+    context or= new Liquid.Context()
 
     result = @interpretCondition(@left, @right, @operator, context)
-    unfuture = require("./helpers").unfuture
 
     switch @childRelation
       when "or"
-        unfuture result, (err, result) =>
-          return result if result
-          unfuture @childCondition.evaluate(context)
+        Liquid.async.when(result).when (result) =>
+          result or @childCondition.evaluate(context)
       when "and"
-        unfuture result, (err, result) =>
-          return result unless result
-          unfuture @childCondition.evaluate(context)
+        Liquid.async.when(result).when (result) =>
+          result and @childCondition.evaluate(context)
       else
         result
 
@@ -80,8 +78,7 @@ module.exports = class Condition
 
     left = context.get(left)
     right = context.get(right)
-    unfuture = require("./helpers").unfuture
 
-    unfuture left, (err, left) =>
-      unfuture right, (err, right) =>
+    Liquid.async.when(left).when (left) =>
+      Liquid.async.when(right).when (right) =>
         operation(@, left, right)

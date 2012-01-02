@@ -1,6 +1,6 @@
 Liquid = require "../../liquid"
 
-module.exports = class Unless extends require("./if")
+module.exports = class Unless extends Liquid.If
 
   # Unless is a conditional just like 'if' but works on the inverse logic.
   #

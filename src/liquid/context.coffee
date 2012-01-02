@@ -1,6 +1,5 @@
 Liquid = require "../liquid"
 _ = require("underscore")._
-futures = require "futures"
 
 module.exports = class Context
 
@@ -78,9 +77,9 @@ module.exports = class Context
       @push(newScope)
       result = f()
 
-      if futures.future.isFuture(result)
+      if Liquid.async.isPromise(result)
         popLater = true
-        result.when => @pop()
+        result.always => @pop()
 
       result
     finally
@@ -156,106 +155,92 @@ module.exports = class Context
 
     variable or= @lookupAndEvaluate(scope, key)
 
-    f = futures.future()
-    delivered = false
-    result = null
-
-    Liquid.Helpers.unfuture variable, (err, variable) =>
-      result = @liquify(variable)
-      f.deliver(err, result)
-      delivered = true
-
-    if delivered then result else f
+    Liquid.async
+      .when(variable)
+      .when((variable) => @liquify(variable))
 
   variable: (markup) ->
-    future = futures.future()
-    unfuture = Liquid.Helpers.unfuture
+    Liquid.async.promise (future) =>
 
-    parts = Liquid.Helpers.scan(markup, Liquid.VariableParser)
-    squareBracketed = /^\[(.*)\]$/
+      parts = Liquid.Helpers.scan(markup, Liquid.VariableParser)
+      squareBracketed = /^\[(.*)\]$/
 
-    firstPart = parts.shift()
+      firstPart = parts.shift()
 
-    if match = squareBracketed.exec(firstPart)
-      firstPart = match[1]
+      if match = squareBracketed.exec(firstPart)
+        firstPart = match[1]
 
-    object = @findVariable(firstPart)
+      object = @findVariable(firstPart)
 
-    return object if parts.length == 0
+      return future.drain(object) if parts.length == 0
 
-    delivered = false
-
-    mapper = (part, next) =>
-      return next() if object == null
-
-      unfuture object, (err, unfuturedObject) =>
-        object = @liquify(unfuturedObject)
-
+      mapper = (part, next) =>
         return next() if object == null
 
-        bracketMatch = squareBracketed.exec(part)
+        Liquid.async.when(object).done (_object) =>
+          object = @liquify(_object)
 
-        part = @resolve(bracketMatch[1]) if bracketMatch
+          return next() if object == null
 
-        unfuture part, (err, part) =>
-          isArrayAccess = (_.isArray(object) and _.isNumber(part))
-          isObjectAccess = (_.isObject(object) and (part of object))
+          bracketMatch = squareBracketed.exec(part)
 
-          # If object is a hash- or array-like object we look for the
-          # presence of the key and if its available we return it
-          if isArrayAccess or isObjectAccess
-            unfuture @lookupAndEvaluate(object, part), (err, result) =>
-              object = @liquify(result)
-              next()
+          part = @resolve(bracketMatch[1]) if bracketMatch
 
-          else
-            isSpecialAccess = (
-              !bracketMatch and object and
-              (_.isArray(object) or _.isString(object)) and
-              ["size", "first", "last"].indexOf(part) >= 0
-            )
+          Liquid.async.when(part).done (part) =>
+            isArrayAccess = (_.isArray(object) and _.isNumber(part))
+            isObjectAccess = (_.isObject(object) and (part of object))
 
-            # Some special cases. If the part wasn't in square brackets
-            # and no key with the same name was found we interpret
-            # following calls as commands and call them on the
-            # current object
-            if isSpecialAccess
-              object = switch part
-                when "size"
-                  @liquify(object.length)
-                when "first"
-                  @liquify(object[0])
-                when "last"
-                  @liquify(object[object.length-1])
-                else
-                  @liquify(object)
-
-              next()
+            # If object is a hash- or array-like object we look for the
+            # presence of the key and if its available we return it
+            if isArrayAccess or isObjectAccess
+              Liquid.async.when(@lookupAndEvaluate(object, part)).done (result) =>
+                object = @liquify(result)
+                next()
 
             else
-              object = null
-              next()
+              isSpecialAccess = (
+                !bracketMatch and object and
+                (_.isArray(object) or _.isString(object)) and
+                ["size", "first", "last"].indexOf(part) >= 0
+              )
 
-    # The iterator walks through the parsed path step
-    # by step and waits for promises to be fulfilled.
-    iterator = (index) ->
-      try
-        mapper parts[index], (err) ->
-          index += 1
+              # Some special cases. If the part wasn't in square brackets
+              # and no key with the same name was found we interpret
+              # following calls as commands and call them on the
+              # current object
+              if isSpecialAccess
+                object = switch part
+                  when "size"
+                    @liquify(object.length)
+                  when "first"
+                    @liquify(object[0])
+                  when "last"
+                    @liquify(object[object.length-1])
+                  else
+                    @liquify(object)
 
-          if index < parts.length
-            iterator(index)
-          else
-            delivered = true
-            future.deliver(null, object)
-      catch e
-        object = null
-        delivered = true
-        future.deliver("Couldn't walk variable: #{markup}", object)
+                next()
 
-    iterator(0)
+              else
+                object = null
+                next()
 
-    if delivered then object else future
+      # The iterator walks through the parsed path step
+      # by step and waits for promises to be fulfilled.
+      iterator = (index) ->
+        try
+          mapper parts[index], (err) ->
+            index += 1
+
+            if index < parts.length
+              iterator(index)
+            else
+              future.resolve(object)
+        catch e
+          console.log("Couldn't walk variable: #{markup}")
+          future.reject(e)
+
+      iterator(0)
 
   lookupAndEvaluate: (obj, key) ->
     value = obj[key]

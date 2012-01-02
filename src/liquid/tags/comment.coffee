@@ -1,7 +1,7 @@
 Liquid = require "../../liquid"
 
-class Liquid.Comment extends require("../block")
+module.exports = class Comment extends Liquid.Block
   render: ->
     ""
 
-Liquid.Template.registerTag("comment", Liquid.Comment)
+Liquid.Template.registerTag("comment", Comment)

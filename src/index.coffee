@@ -35,21 +35,19 @@ Liquid.Variable         = require("./liquid/variable")
 Liquid.Template         = require("./liquid/template")
 Liquid.StandardFilters  = require("./liquid/standard_filters")
 Liquid.Condition        = require("./liquid/condition")
-class Liquid.ElseCondition extends Liquid.Condition
-  else: -> true
-  evaluate: -> true
+Liquid.ElseCondition    = require("./liquid/else_condition")
 
 Liquid.Template.registerFilter(Liquid.StandardFilters)
 
-require("./liquid/tags/assign")
-require("./liquid/tags/capture")
-require("./liquid/tags/comment")
-require("./liquid/tags/decrement")
-require("./liquid/tags/for")
-require("./liquid/tags/if")
-require("./liquid/tags/ifchanged")
-require("./liquid/tags/increment")
-require("./liquid/tags/raw")
-require("./liquid/tags/unless")
+Liquid.Assign           = require("./liquid/tags/assign")
+Liquid.Capture          = require("./liquid/tags/capture")
+Liquid.Comment          = require("./liquid/tags/comment")
+Liquid.Decrement        = require("./liquid/tags/decrement")
+Liquid.For              = require("./liquid/tags/for")
+Liquid.If               = require("./liquid/tags/if")
+Liquid.Ifchanged        = require("./liquid/tags/ifchanged")
+Liquid.Increment        = require("./liquid/tags/increment")
+Liquid.Raw              = require("./liquid/tags/raw")
+Liquid.Unless           = require("./liquid/tags/unless")
 
 module.exports = Liquid

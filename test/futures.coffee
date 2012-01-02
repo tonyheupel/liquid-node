@@ -1,40 +1,35 @@
 Liquid = require("../src/index")
-futures = require "futures"
-testCase = require("nodeunit").testCase
+require "./_helper"
+Liquid.async.debug = true
 
 asyncResult = (result) ->
   ->
-    f = futures.future()
-    setTimeout((-> f.deliver(null, result)), 10)
-    f
+    Liquid.async.promise (p) ->
+      setTimeout((-> p.resolve(result)), 10)
 
 module.exports =
   test_futures: (exit, assert) ->
     finalValue = null
 
-    input = futures.future()
-    output = Liquid.Helpers.unfuture input, (err, value) ->
-      f = futures.future()
+    input = Liquid.async.defer()
+    output = input.when (value) ->
+      Liquid.async.promise (p) ->
+        todo = -> p.resolve(value + 1)
+        setTimeout(todo, 10)
 
-      todo = -> f.deliver(null, value + 1)
-      setTimeout(todo, 10)
-
-      f
-
-    output.when (err, value) ->
+    output.always (err, value) ->
       finalValue = value
 
-    input.deliver(null, 1)
+    input.resolve(1)
 
     exit ->
       assert.eql 2, finalValue
 
-
-  test_async_variable: renderTest (render, assert) ->
-
+  test_simple_variable: renderTest (render, assert) ->
     render 'worked', '{{ test }}',
       test: asyncResult("worked")
 
+  test_async_variable: renderTest (render, assert) ->
     render 'worked', '{{ test.text }}',
       test: asyncResult({ text: "worked" })
 

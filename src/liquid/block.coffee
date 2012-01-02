@@ -1,6 +1,5 @@
 Liquid = require("../liquid")
 _ = require("underscore")._
-futures = require "futures"
 util = require "util"
 
 module.exports = class Block extends require("./tag")
@@ -76,32 +75,11 @@ module.exports = class Block extends require("./tag")
     throw new Liquid.SyntaxError("#{@blockName()} tag was never closed")
 
   renderAll: (list, context) ->
-    result = []
-
-    delivered = false
-    futureResult = futures.future()
-
-    futures.forEachAsync(list, (next, token) ->
-      try
-        if token.render
-          rendered = token.render(context)
-
-          if futures.future.isFuture(rendered)
-            rendered.when (err, rendered) ->
-              result.push rendered
-              next()
-          else
-            result.push rendered
-            next()
-        else
-          result.push token
-          next()
-      catch e
-        context.handleError(e)
-        futureResult.deliver e
-    ).then ->
-      delivered = true
-      result = result.join("")
-      futureResult.deliver null, result
-
-    if delivered then result else futureResult
+    Liquid.async
+      .map list, (token) ->
+        try
+          if token.render then token.render(context) else token
+        catch e
+          context.handleError(e)
+          throw e
+      .when (result) -> result.join("")

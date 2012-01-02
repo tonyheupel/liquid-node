@@ -5,7 +5,7 @@
     { "name": "Tony Heupel", "email": "tonyheupel@gmail.com" }
   ],
   "description": "Node.js port of Tobias Lütke's Liquid template engine.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "homepage": "https://github.com/sirlantis/liquid-node",
   "bugs": "https://github.com/sirlantis/liquid-node/issues",
   "repository": {
@@ -19,12 +19,10 @@
   },
   "dependencies": {
     "coffee-script": "git://github.com/jashkenas/coffee-script.git",
-    "futures": ">=2.0",
     "underscore": ">=1.2.3"
   },
   "devDependencies": {
     "expresso": ">=0.9.0",
-    "nodeunit": ">=0.6.4"
   },
   "scripts": {
    "test": "expresso test/*.coffee",
