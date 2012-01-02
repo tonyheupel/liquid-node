@@ -70,10 +70,8 @@ module.exports = class Liquid.Template
 
     try
       # render the nodelist.
-      # for performance reasons we get a array back here.
-      # join will make a string out of it
-      result = @root.render(context)
-      result.join?() or result
+      # TODO: original implementation used arrays up until here (for performance reasons)
+      Liquid.async.when(@root.render(context))
     finally
       @errors = context.errors
 
