@@ -22,7 +22,7 @@
     "underscore": ">=1.2.3"
   },
   "devDependencies": {
-    "expresso": ">=0.9.0",
+    "expresso": ">=0.9.0"
   },
   "scripts": {
    "test": "expresso test/*.coffee",
