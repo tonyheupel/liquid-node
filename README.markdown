@@ -12,7 +12,9 @@ LiquidNode tries to solve that problem by using [Futures and Promises](http://en
 
 ## Implementation of Promises
 
-I started with the [**futures** package](https://github.com/coolaj86/futures) as an implementation of Promises but it didn't chain as nicely as I had hoped for. So here is LiquidNode's custom Promise implementation:
+I started with the [**futures** package](https://github.com/coolaj86/futures) as an implementation of Promises but it didn't chain as nicely as I had hoped for.
+
+So here is LiquidNode's custom Promise implementation. It's loosely based on [jQuery's Deferred](http://api.jquery.com/category/deferred-object/), [Promises/A](http://wiki.commonjs.org/wiki/Promises/A), and [Q](https://github.com/kriskowal/q).
 
 ```coffeescript
 fs        = require "fs"
