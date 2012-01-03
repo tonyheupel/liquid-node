@@ -98,5 +98,6 @@ For standard use you can just pass it the content of a file and call render with
 Liquid = require "liquid-node"
 
 template = Liquid.Template.parse("hi {{name}}") # Parses and compiles the template
-template.render 'name': 'tobi'                  # => "hi tobi"
+promise = template.render 'name': 'tobi'        # => [Promise Object]
+promise.done console.log                        # >> "hi tobi"
 ```
